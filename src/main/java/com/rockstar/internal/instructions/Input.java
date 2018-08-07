@@ -14,6 +14,15 @@ public class Input implements Instruction {
 	@Override
 	public void run(Program state) {
 		String value=System.console().readLine();
-		state.assignVariable(rhs,Value.createString(value));
+		try{
+		    state.assignVariable(rhs,Value.createNumber(Double.valueOf(value)));
+		}catch(Exception e){
+		    state.assignVariable(rhs,Value.createString(value));
+		}
+	}
+	
+	@Override
+	public String toString(){
+	    return "Input " + rhs;
 	}
 }

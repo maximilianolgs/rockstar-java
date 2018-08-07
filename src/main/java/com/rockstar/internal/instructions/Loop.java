@@ -36,4 +36,9 @@ public class Loop implements Instruction {
 		boolean condResult=condition.evaluate(state);
 		return reverseConditionResult?!condResult:condResult;
 	}
+	
+	@Override
+	public String toString(){
+	    return "LOOP " + condition.toString() + " reverse?(" + reverseConditionResult + ") \n" + block.toString();
+	}
 }

@@ -22,6 +22,20 @@ public enum Comparison {
 			double r=rhs.getValue(Double.class);
 			return l>r;
 		}
+	},HIGHER_OR_EQUAL	{
+		@Override
+		public boolean compare(Value lhs, Value rhs) {
+			double l=lhs.getValue(Double.class);
+			double r=rhs.getValue(Double.class);
+			return l>=r;
+		}
+	},LOWER_OR_EQUAL	{
+		@Override
+		public boolean compare(Value lhs, Value rhs) {
+			double l=lhs.getValue(Double.class);
+			double r=rhs.getValue(Double.class);
+			return l<=r;
+		}
 	};
 	
 	public final boolean compare(Program state,String lhs,String rhs)	{

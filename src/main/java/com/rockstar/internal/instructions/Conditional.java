@@ -17,4 +17,9 @@ public class Conditional implements Instruction {
 	public void run(Program state) {
 		if (condition.evaluate(state)) block.run(state);
 	}
+	
+	@Override
+	public String toString(){
+	    return "Condition " + condition + " BLOCK \n" + block;
+	}
 }

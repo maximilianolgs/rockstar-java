@@ -33,20 +33,22 @@ public class Value {
 	}
 	
 	@Override
-	public String toString()	{
-		switch (contentType)	{
-		case NUMBER:
-		case STRING:
-		case BOOLEAN:
-			return value.toString();
-		case NULL_TYPE:
-			return "null";
-		case MYSTERIOUS:
-			return "mysterious";
-		default:
-			return "";
-		}
+    public String toString() {
+	switch (contentType) {
+	case NUMBER:
+	    if(value.toString().endsWith(".0"))
+		return value.toString().substring(0, value.toString().length()-2);
+	case STRING:
+	case BOOLEAN:
+	    return value.toString();
+	case NULL_TYPE:
+	    return "null";
+	case MYSTERIOUS:
+	    return "mysterious";
+	default:
+	    return "";
 	}
+    }
 	
 	public <T> T getValue(Class<T> theClass)	{
 		try	{

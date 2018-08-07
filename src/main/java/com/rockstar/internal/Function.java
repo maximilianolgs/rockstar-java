@@ -3,6 +3,7 @@ package com.rockstar.internal;
 import java.util.List;
 import java.util.Map;
 
+import com.rockstar.Parser;
 import com.rockstar.Program;
 import com.rockstar.RockstarException;
 
@@ -22,7 +23,7 @@ public class Function {
 		int N=argumentNames.size();
 		if (N!=arguments.size()) throw new RockstarException("Expected "+N+" arguments, found "+arguments.size()+".");
 		for (int i=0;i<N;++i) program.assignVariable(argumentNames.get(i),arguments.get(i));
-		program.run();
+		program.run(Parser.debug);
 		return program.evaluate(returnValueExpr);
 	}
 }

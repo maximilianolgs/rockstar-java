@@ -18,13 +18,13 @@ import com.rockstar.internal.Condition;
 import com.rockstar.internal.Function;
 import com.rockstar.internal.Instruction;
 import com.rockstar.internal.conditions.CompositeCondition;
-import com.rockstar.internal.instructions.Assignment;
 import com.rockstar.internal.instructions.BlockInstruction;
 import com.rockstar.internal.instructions.Conditional;
 import com.rockstar.internal.instructions.Decrement;
 import com.rockstar.internal.instructions.Increment;
 import com.rockstar.internal.instructions.Input;
 import com.rockstar.internal.instructions.Loop;
+import com.rockstar.internal.instructions.NoOp;
 import com.rockstar.internal.instructions.Output;
 import com.rockstar.internal.instructions.SpecialBlockInstruction;
 import com.rockstar.internal.instructions.SubtractInstruction;
@@ -34,6 +34,7 @@ import com.rockstar.parser.FunctionHeaderMatcher;
 
 public class Parser {
 	public final static List<String> COMMON_VARIABLE_NAMES=Arrays.asList("the ","my ","your ","The ","My ","Your ");
+	public static boolean debug;
 	
 	public static String parseAsCommonVariableName(String name)	{
 		for (String prefix:COMMON_VARIABLE_NAMES)	{
@@ -67,9 +68,9 @@ public class Parser {
 	public static Program parse(PeekingIterator<String> lines)	{
 		Map<String,Function> functions=new HashMap<>();
 		List<Instruction> instructions=new ArrayList<>();
-		while (lines.hasNext())	{
+		while (lines.hasNext()){
 			String line=lines.next().trim();
-			if (line.isEmpty()) continue;
+			if (line.isEmpty() ) continue;
 			FunctionHeaderMatcher functionMatcher=new FunctionHeaderMatcher(line);
 			if (functionMatcher.isFunction())	{
 				Function fun=parseFunction(functionMatcher,lines);
@@ -88,13 +89,16 @@ public class Parser {
 			if (line.startsWith("Give back "))	{
 				String rhs=line.substring(10);	// "Give back ".length()=10.
 				return new Function(header.getArgNames(),rhs,instructions);
-			}	else instructions.add(parseInstruction(line,lines));
+			}else instructions.add(parseInstruction(line,lines));
 		}
 	}
 	
 	private static Instruction parseInstruction(String line,PeekingIterator<String> lines)	{
 		// This requires the iterator because maybe it's a block instruction.
-		if (line.startsWith("Put ")) return parseAsPutInto(line);
+		if (line.startsWith("(") && line.endsWith(")")) return new NoOp();
+		else if (line.equals("Continue")||line.equalsIgnoreCase("take it to the top")) return SpecialBlockInstruction.CONTINUE;
+		else if (line.equals("Break")||line.equalsIgnoreCase("break it down!")) return SpecialBlockInstruction.BREAK;
+		else if (line.startsWith("Put ")) return parseAsPutInto(line);
 		else if (line.startsWith("Take ")) return parseAsTakeFrom(line);
 		else if (line.startsWith("Build ")) return parseAsBuildUp(line);
 		else if (line.startsWith("Knock ")) return parseAsKnockDown(line);
@@ -103,30 +107,31 @@ public class Parser {
 		else if (line.startsWith("Whisper ")) return new Output(line.substring(8));
 		else if (line.startsWith("Scream ")) return new Output(line.substring(7));
 		else if (line.startsWith("Listen to ")) return new Input(parseVariableName(line.substring(10)));
-		else if (line.equals("Continue")||line.equalsIgnoreCase("take it to the top")) return SpecialBlockInstruction.CONTINUE;
-		else if (line.equals("Break")||line.equalsIgnoreCase("break it down!")) return SpecialBlockInstruction.BREAK;
 		else if (line.startsWith("If ")) return parseIf(line,lines);
 		else if (line.startsWith("While ")) return parseWhile(line,lines);
 		else if (line.startsWith("Until ")) return parseUntil(line,lines);
-		AssignmentParser assignment=new AssignmentParser(line);
-		if (assignment.isAssignment()) return assignment.createInstruction();
-		throw new RockstarException("Unknown sentence: "+line+".");
+		return parseAssignment(line);
 	}
 	
-	private static Instruction parseIf(String line,PeekingIterator<String> lines)	{
-		List<Instruction> instructions=new ArrayList<>();
-		Condition cond=parseCondition(line.substring(3));
-		instructions.add(parseInstruction(lines.next(),lines));
-		for (;;)	{
-			String newLine=lines.peek().trim();
-			if (newLine.startsWith("And "))	{
-				instructions.add(parseInstruction(newLine.substring(4),lines));
-				lines.next();	// To advance the line we just read.
-			}
-			else break;
-		}
-		return new Conditional(cond,new BlockInstruction(instructions));
+    private static Instruction parseAssignment(String line) {
+	AssignmentParser assignment = new AssignmentParser(line);
+	if (assignment.isAssignment()) {
+	    return assignment.createInstruction();
 	}
+	throw new RockstarException("Unknown sentence: " + line + ".");
+    }
+
+    private static Instruction parseIf(String line, PeekingIterator<String> lines) {
+	List<Instruction> instructions = new ArrayList<>();
+	Condition cond = parseCondition(line.substring(3));
+	while (lines.hasNext()&&!lines.peek().trim().isEmpty()) {
+	    instructions.add(parseInstruction(lines.next(), lines));
+	}
+	if(lines.hasNext()){
+	    lines.next(); // skip blank line
+	}
+	return new Conditional(cond, new BlockInstruction(instructions));
+    }
 	
 	private static Instruction parseWhile(String line,PeekingIterator<String> lines)	{
 		Condition condition=parseCondition(line.substring(6));
@@ -163,27 +168,28 @@ public class Parser {
 		return ConditionParser.parseCondition(cond);
 	}
 	
-	private static BlockInstruction parseLoop(PeekingIterator<String> lines)	{
-		List<Instruction> instructions=new ArrayList<>();
-		for (;;)	{
-			String line=lines.next().trim();
-			if (line.isEmpty()) continue;
-			if (line.equals("End")||line.equals("And around we go")) return new BlockInstruction(instructions);
-			else instructions.add(parseInstruction(line,lines));
-		}
-
+    private static BlockInstruction parseLoop(PeekingIterator<String> lines) {
+	List<Instruction> instructions = new ArrayList<>();
+	while (lines.hasNext()
+		&& !(lines.peek().isEmpty() || lines.peek().equals("End") || lines.peek().equals("And around we go"))) {
+	    instructions.add(parseInstruction(lines.next(), lines));
 	}
+	if(lines.hasNext()){
+	    lines.next(); //skip blank
+	}
+	return new BlockInstruction(instructions);
+
+    }
 	
 	private static Instruction parseAsPutInto(String line)	{
 		String[] split=line.substring(4).split(" into ");	// The 4 is because we remove "put ".
-		if (split.length!=2) throw new RockstarException("Malformed assignment instruction.");
-		String varName=parseVariableName(split[1]);
-		return new Assignment(varName,split[0]);
+		if (split.length!=2) throw new RockstarException("Malformed put assignment instruction: " + line);
+		return parseAssignment(split[1] + " is " + split[0]);
 	}
 	
 	private static Instruction parseAsTakeFrom(String line)	{
 		String[] split=line.substring(5).split(" from ");	// The 5 is because we remove "take ".
-		if (split.length!=2) throw new RockstarException("Malformed assignment instruction.");
+		if (split.length!=2) throw new RockstarException("Malformed take assignment instruction: " + line);
 		String varName=parseVariableName(split[1]);
 		return new SubtractInstruction(varName,split[0]);
 	}
@@ -216,7 +222,8 @@ public class Parser {
 		}
 		try	{
 			Program program=parse(args[0]);
-			program.run();
+			debug = args.length>1;
+			program.run(debug);
 		}	catch (IOException exc)	{
 			System.out.println("Error reading the script: "+exc.getMessage()+".");
 		}	catch (RockstarException exc)	{

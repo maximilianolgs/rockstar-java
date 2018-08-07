@@ -17,4 +17,9 @@ public class Decrement implements Instruction {
 		double doubleValue=currentValue.getValue(Double.class);
 		state.assignVariable(varName,Value.createNumber(doubleValue-1));
 	}
+	
+	@Override
+	public String toString(){
+	    return "Decrement " + varName;
+	}
 }

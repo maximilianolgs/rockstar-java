@@ -16,7 +16,9 @@ public class ConditionParser {
 	private final static List<String> IS_NOT_IDS=Arrays.asList(" is not "," ain't ");
 	private final static List<String> IS_IDS=Arrays.asList(" is ");
 	private final static Set<String> HIGHER_IDS=ImmutableSet.of("higher","greater","bigger","stronger");
+	private final static Set<String> HIGHER_OR_EQUAL_IDS=ImmutableSet.of("as high","as great","as big","as strong");
 	private final static Set<String> LOWER_IDS=ImmutableSet.of("lower","less","smaller","weaker");
+	private final static Set<String> LOWER_OR_EQUAL_IDS=ImmutableSet.of("as low","as little","as small","as weak");
 	
 	public static Condition parseCondition(String str)	{
 		// "Is not" must be tried before "is" because "is not" includes "is".
@@ -25,15 +27,29 @@ public class ConditionParser {
 		return new ValueCondition(str);
 	}
 	
-	public static Condition parseCondition(String str,String id)	{
-		String[] split=str.split(id);
-		if (split.length!=2) throw new RockstarException("Malformed condition.");
-		String lhs=split[0];
-		if (split[1].contains(" than "))	{
-			String[] resplit=split[1].split(" than ");
-			if (HIGHER_IDS.contains(resplit[0])) return new ComparisonCondition(lhs,resplit[1],Comparison.HIGHER);
-			else if (LOWER_IDS.contains(resplit[0])) return new ComparisonCondition(lhs,resplit[1],Comparison.LOWER);
-			else throw new RockstarException("Malformed condition.");
-		}	else return new ComparisonCondition(lhs,split[1],Comparison.EQUAL);
-	}
+    public static Condition parseCondition(String str, String id) {
+	String[] split = str.split(id);
+	if (split.length != 2)
+	    throw new RockstarException("Malformed condition.");
+	String lhs = split[0];
+	if (split[1].contains(" than ")) {
+	    String[] resplit = split[1].split(" than ");
+	    if (HIGHER_IDS.contains(resplit[0]))
+		return new ComparisonCondition(lhs, resplit[1], Comparison.HIGHER);
+	    else if (LOWER_IDS.contains(resplit[0]))
+		return new ComparisonCondition(lhs, resplit[1], Comparison.LOWER);
+	    else
+		throw new RockstarException("Malformed condition.");
+	} else if(split[1].contains(" as ")){
+	    String[] resplit = split[1].split(" as ");
+	    if (HIGHER_OR_EQUAL_IDS.contains(resplit[0]))
+		return new ComparisonCondition(lhs, resplit[1], Comparison.HIGHER_OR_EQUAL);
+	    else if (LOWER_OR_EQUAL_IDS.contains(resplit[0]))
+		return new ComparisonCondition(lhs, resplit[1], Comparison.LOWER_OR_EQUAL);
+	    else
+		throw new RockstarException("Malformed condition.");
+	    
+	} else
+	    return new ComparisonCondition(lhs, split[1], Comparison.EQUAL);
+    }
 }

@@ -19,4 +19,9 @@ public class SubtractInstruction implements Instruction {
 		double minuend=state.getVariable(variableName).getValue(Double.class);
 		state.assignVariable(variableName,Value.createNumber(minuend-subtrahend));
 	}
+	    
+	    @Override
+	    public String toString(){
+		return variableName + " - " + rhs; 
+	    }
 }

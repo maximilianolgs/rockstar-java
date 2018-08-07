@@ -47,4 +47,20 @@ public class CompositeCondition implements Condition {
 		Collection<Boolean> conditionals=Collections2.transform(simpleConditions, (Condition cond)->cond.evaluate(state));
 		return condType.isTrue(conditionals);
 	}
+	
+    @Override
+    public String toString() {
+	String rta = simpleConditions.get(0).toString();
+	for (int i = 1; i <simpleConditions.size(); i++) {
+	    switch (condType) {
+	    case AND:
+		rta += " AND " + simpleConditions.get(i).toString();
+		break;
+	    case OR:
+		rta += " OR " + simpleConditions.get(i).toString();
+		break;
+	    }
+	}
+	return rta;
+    }
 }

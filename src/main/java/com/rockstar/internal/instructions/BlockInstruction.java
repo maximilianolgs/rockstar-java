@@ -16,4 +16,13 @@ public class BlockInstruction implements Instruction {
 	public void run(Program state) {
 		for (Instruction instr:instructions) instr.run(state);
 	}
+	
+	@Override
+	public String toString(){
+	    String rta = "Block START\n";
+	    for(Instruction i : instructions){
+		rta += i.toString()+"\n";
+	    }
+	    return rta+"Block END";
+	}
 }

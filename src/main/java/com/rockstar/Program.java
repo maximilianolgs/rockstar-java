@@ -134,7 +134,12 @@ public class Program {
 		return Optional.of(function.call(arguments, functions));
 	}
 	
-	public void run()	{
-		for (Instruction instr:instructions) instr.run(this);
+    public void run(boolean debug) {
+	for (Instruction instr : instructions) {
+	    if(debug){
+		System.out.println(instr.toString());
+	    }
+	    instr.run(this);
 	}
+    }
 }

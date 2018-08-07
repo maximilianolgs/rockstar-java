@@ -27,4 +27,9 @@ public class ValueCondition implements Condition {
 			return false;
 		}
 	}
+	
+	@Override
+	public String toString(){
+	    return "ValueCondition " + expression;
+	}
 }

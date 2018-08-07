@@ -17,4 +17,9 @@ public class Assignment implements Instruction {
 		Value result=state.evaluate(rhs);
 		state.assignVariable(variableName,result);
 	}
+	
+	@Override
+	public String toString(){
+	    return "Assignment " + variableName + " = " + rhs;
+	}
 }

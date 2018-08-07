@@ -17,4 +17,9 @@ public class Increment implements Instruction {
 		double doubleValue=currentValue.getValue(Double.class);
 		state.assignVariable(varName,Value.createNumber(1+doubleValue));
 	}
+	
+	@Override
+	public String toString(){
+	    return "Increment " + varName;
+	}
 }

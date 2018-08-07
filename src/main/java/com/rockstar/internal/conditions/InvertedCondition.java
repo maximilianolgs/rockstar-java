@@ -14,4 +14,9 @@ public class InvertedCondition implements Condition {
 	public boolean evaluate(Program state) {
 		return !baseCondition.evaluate(state);
 	}
+	
+	@Override
+	public String toString(){
+	    return "NOT " + baseCondition.toString();
+	}
 }

@@ -16,4 +16,9 @@ public class Output implements Instruction {
 		Value output=state.evaluate(rhs);
 		System.out.println(output.toString());
 	}
+	
+	@Override
+	public String toString(){
+	    return "Output: " + rhs;
+	}
 }
